@@ -1,11 +1,10 @@
-import java.nio.file.Files
-import java.io.File
+import ReleaseSettings.{javaOnlyReleaseSettings, rootReleaseSettings, skipReleaseSettings}
 import Tarball.createTarballSettings
 import sbt.util
 import sbtlicensereport.license.{DepModuleInfo, LicenseCategory, LicenseInfo}
-import ReleaseSettings.{javaOnlyReleaseSettings, rootReleaseSettings, skipReleaseSettings}
 
-import scala.jdk.CollectionConverters.asJavaIterableConverter
+import java.io.File
+import java.nio.file.Files
 import scala.language.implicitConversions
 
 val orgName = "io.unitycatalog"
@@ -36,14 +35,14 @@ lazy val commonSettings = Seq(
   ),
   resolvers += Resolver.mavenLocal,
   autoScalaLibrary := false,
-  crossPaths := false,  // No scala cross building
+  crossPaths := false, // No scala cross building
   assembly / assemblyMergeStrategy := {
-    case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+    case PathList("META-INF", xs@_*) => MergeStrategy.discard
     case x => MergeStrategy.first
   },
 
   // Test configs
-  Test / testOptions  := Seq(Tests.Argument(TestFrameworks.JUnit, "-a", "-v", "-q"), Tests.Filter(name => !(name startsWith s"$orgName.server.base"))),
+  Test / testOptions := Seq(Tests.Argument(TestFrameworks.JUnit, "-a", "-v", "-q"), Tests.Filter(name => !(name startsWith s"$orgName.server.base"))),
   Test / logLevel := util.Level.Info,
   Test / publishArtifact := false,
   fork := true,
@@ -76,18 +75,8 @@ lazy val commonSettings = Seq(
     // I think we're good with the classpath exception in there.
     case DepModuleInfo("jakarta.transaction", "jakarta.transaction-api", _) => true
   },
-  
+
   assembly / test := {}
-)
-
-enablePlugins(CoursierPlugin)
-
-useCoursier := true
-
-// Configure resolvers
-resolvers ++= Seq(
-  "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
-  "Maven Central" at "https://repo1.maven.org/maven2/",
 )
 
 def javaCheckstyleSettings(configLocation: File) = Seq(
@@ -172,6 +161,7 @@ lazy val populateTestDB = taskKey[Unit]("Run PopulateTestDatabase main class fro
 lazy val server = (project in file("server"))
   .dependsOn(client % "test->test")
   .dependsOn(serverModels)
+  .enablePlugins(PackPlugin)
   .settings (
     name := s"$artifactNamePrefix-server",
     commonSettings,
@@ -196,11 +186,11 @@ lazy val server = (project in file("server"))
       "org.openapitools" % "jackson-databind-nullable" % openApiToolsJacksonBindNullableVersion,
 
       "jakarta.activation" % "jakarta.activation-api" % "2.1.3",
-      "net.bytebuddy" % "byte-buddy" % "1.14.15",
+      "net.bytebuddy" % "byte-buddy" % "1.14.17",
       "org.projectlombok" % "lombok" % "1.18.32" % Provided,
 
       //For s3 access
-      "com.amazonaws" % "aws-java-sdk-s3" % "1.12.728",
+      "com.amazonaws" % "aws-java-sdk-s3" % "1.12.744",
       "org.apache.httpcomponents" % "httpcore" % "4.4.16",
       "org.apache.httpcomponents" % "httpclient" % "4.5.14",
 
@@ -287,6 +277,7 @@ lazy val serverModels = (project in file("server") / "target" / "models")
 lazy val cli = (project in file("examples") / "cli")
   .dependsOn(server % "compile->compile;test->test")
   .dependsOn(client % "compile->compile;test->test")
+  .enablePlugins(PackPlugin)
   .settings(
     name := s"$artifactNamePrefix-cli",
     mainClass := Some(orgName + ".cli.UnityCatalogCli"),
@@ -295,7 +286,7 @@ lazy val cli = (project in file("examples") / "cli")
     javafmtCheckSettings,
     javaCheckstyleSettings(file("dev") / "checkstyle-config.xml"),
     libraryDependencies ++= Seq(
-      "commons-cli" % "commons-cli" % "1.7.0",
+      "commons-cli" % "commons-cli" % "1.8.0",
       "org.json" % "json" % "20240303",
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
       "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jacksonVersion,
@@ -310,9 +301,9 @@ lazy val cli = (project in file("examples") / "cli")
       "de.vandermeer" % "asciitable" % "0.3.2",
       // for s3 access
       "org.fusesource.jansi" % "jansi" % "2.4.1",
-      "com.amazonaws" % "aws-java-sdk-core" % "1.12.728",
+      "com.amazonaws" % "aws-java-sdk-core" % "1.12.729",
       "org.apache.hadoop" % "hadoop-aws" % "3.4.0",
-      "com.google.guava" % "guava" % "31.0.1-jre",
+      "com.google.guava" % "guava" % "32.0.0-jre",
       // Test dependencies
       "org.junit.jupiter" % "junit-jupiter" % "5.10.3" % Test,
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
@@ -383,6 +374,6 @@ def generateClasspathFile(targetDir: File, classpath: Classpath): Unit = {
 val generate = taskKey[Unit]("generate code from APIs")
 
 // Library versions
-val jacksonVersion = "2.17.0"
+val jacksonVersion = "2.17.1"
 val openApiToolsJacksonBindNullableVersion = "0.2.6"
 val log4jVersion = "2.23.1"
