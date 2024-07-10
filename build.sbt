@@ -201,18 +201,6 @@ lazy val server = (project in file("server"))
       "lombok.launch.AnnotationProcessorHider$AnnotationProcessor"
     ),
 
-    Compile / sourceGenerators += Def.task {
-      val file = (Compile / sourceManaged).value / "io" / "unitycatalog" / "server" / "utils" / "VersionUtils.java"
-      IO.write(file,
-        s"""package io.unitycatalog.server.utils;
-           |
-           |public class VersionUtils {
-           |  public static String VERSION = "${version.value}";
-           |}
-           |""".stripMargin)
-      Seq(file)
-    },
-
     // OpenAPI generation configs for generating model codes from the spec
     openApiInputSpec := (file(".") / "api" / "all.yaml").toString,
     openApiGeneratorName := "java",

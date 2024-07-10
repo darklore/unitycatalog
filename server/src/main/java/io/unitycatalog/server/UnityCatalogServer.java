@@ -11,7 +11,6 @@ import com.linecorp.armeria.server.annotation.JacksonResponseConverterFunction;
 import com.linecorp.armeria.server.docs.DocService;
 import io.unitycatalog.server.service.*;
 import io.unitycatalog.server.utils.RESTObjectMapper;
-import io.unitycatalog.server.utils.VersionUtils;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -109,7 +108,7 @@ public class UnityCatalogServer {
         "# | |__| | | | | | |_| |_| | | |___| (_| | || (_| | | (_) | (_| | #\n" +
         "#  \\____/|_| |_|_|\\__|\\__, |  \\_____\\__,_|\\__\\__,_|_|\\___/ \\__, | #\n" +
         "#                      __/ |                                __/ | #\n" +
-        "#                     |___/               " + String.format("%15s", ("v" + VersionUtils.VERSION)) + "  |___/  #\n" +
+        "#                     |___/               " + String.format("%15s", ("v" + getClass().getPackage().getImplementationVersion())) + "  |___/  #\n" +
         "###################################################################\n";
     System.out.println(art);
   }
